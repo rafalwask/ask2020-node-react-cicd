@@ -25,8 +25,23 @@ jobs:
           name: Running client tests
           command: npm test
           working_directory: ./client
+  publish-docker:
+    machine: true 
+    steps:
+      - checkout
+      - run: echo "$DOCKERPASS" | docker login -u "$DOCKERUSER" --password-stdin
+      - run:
+        name: Docker publish server
+        command:
+          TAG=0.1.$CIRCLE_BUILD_NUM
+          docker build -t rafalwask/node-react-cicd-server:$TAG .
+          docker push rafalwask/node-react-cicd-server:$TAG
+        working_directory: ./server 
   
 workflows:
     build-and-test:
       jobs:
         - build-and-test
+        - publish-docker:
+            requires:
+              - build-and-test
